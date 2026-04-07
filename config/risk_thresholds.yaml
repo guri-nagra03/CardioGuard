@@ -1,0 +1,209 @@
+# CardioGuard Risk Stratification Configuration
+#
+# This file defines the thresholds and rules for converting ML risk scores
+# into actionable risk categories (Green/Yellow/Red) and generating recommendations.
+
+# Risk Categories
+risk_categories:
+  green:
+    label: "Low Risk"
+    ml_score_max: 0.35  # Updated for ordinal scoring: < 0.35 = closer to Low (0.0)
+    color: "#28a745"  # Green
+    icon: "✓"
+    description: "Cardiovascular wellness indicators within expected ranges"
+    recommendations:
+      - "Maintain current physical activity levels"
+      - "Continue regular sleep schedule (7-9 hours nightly)"
+      - "Monitor heart rate trends monthly"
+      - "Stay hydrated and maintain balanced nutrition"
+
+  yellow:
+    label: "Medium Risk"
+    ml_score_min: 0.35  # Updated for ordinal scoring
+    ml_score_max: 0.65  # 0.35-0.65 = around Medium (0.5)
+    color: "#ffc107"  # Yellow
+    icon: "⚠"
+    description: "Some cardiovascular wellness indicators show room for improvement"
+    recommendations:
+      - "Consider increasing physical activity to 150 minutes/week moderate exercise"
+      - "Improve sleep hygiene - target 7-9 hours nightly"
+      - "Monitor resting heart rate weekly"
+      - "Review activity patterns with fitness professional if concerns persist"
+      - "Consult healthcare provider if wellness concerns continue"
+
+  red:
+    label: "High Risk"
+    ml_score_min: 0.65  # Updated for ordinal scoring: > 0.65 = closer to High (1.0)
+    color: "#dc3545"  # Red
+    icon: "⚠⚠"
+    description: "Multiple cardiovascular wellness indicators warrant attention"
+    recommendations:
+      - "Schedule wellness consultation with healthcare provider"
+      - "Review activity patterns and goals with fitness professional"
+      - "Prioritize 7-9 hours of quality sleep nightly"
+      - "Track resting heart rate daily"
+      - "Consider stress management techniques (meditation, yoga)"
+      - "Evaluate and adjust daily routines to reduce sedentary time"
+
+# Rule-Based Overrides
+# These rules can override the ML score-based categorization to force a specific risk level
+# Applied AFTER ML scoring. First matching rule is applied.
+# MINIMIZED - Only truly extreme cases, let ML model determine most classifications
+override_rules:
+  extreme_sedentary:
+    condition: "steps_avg_30d < 500"  # Changed from 1500 to 500 - almost completely immobile
+    force_level: "red"
+    reason: "Extremely low physical activity detected (avg steps < 500/day)"
+    note: "Prolonged inactivity is associated with cardiovascular wellness concerns"
+
+  severe_sleep_deprivation:
+    condition: "sleep_hours_avg_7d < 3.0"  # Changed from 4.5 to 3.0 - extreme insomnia only
+    force_level: "red"
+    reason: "Severe sleep deprivation detected (avg < 3 hours/night for 7 days)"
+    note: "Insufficient sleep negatively impacts cardiovascular wellness"
+
+  tachycardia_pattern:
+    condition: "resting_hr_estimate > 120"  # Changed from 100 to 120 - severe tachycardia only
+    force_level: "red"
+    reason: "Severe elevated resting heart rate detected (> 120 bpm)"
+    note: "Consider wellness consultation to review resting heart rate"
+
+  # REMOVED: moderate_inactivity (was catching too many people)
+  # REMOVED: insufficient_sleep (was catching too many people)
+  # Let the ML model handle moderate cases
+
+# Synthetic Label Generation Rules
+# Used during ML model training to create educational risk labels
+# These rules define what constitutes high/medium/low risk for training purposes
+# ADJUSTED FOR REALISTIC DISTRIBUTION: ~70% Low, ~20% Medium, ~10% High
+synthetic_labels:
+  high_risk:
+    description: "Patterns associated with elevated cardiovascular wellness risk"
+    conditions:
+      - criterion: "resting_hr_estimate"
+        operator: ">"
+        value: 100  # Changed from 95 to 100 - only true tachycardia
+        explanation: "Elevated resting heart rate (> 100 bpm)"
+      - criterion: "sleep_hours_avg"
+        operator: "<"
+        value: 5.0  # Changed from 5.5 to 5.0 - severe deprivation only
+        explanation: "Insufficient sleep (< 5.0 hours avg)"
+      - criterion: "activity_score_percentile"
+        operator: "<"
+        value: 10  # Changed from 15 to 10 - bottom 10% only
+        explanation: "Low activity score (bottom 10th percentile)"
+      - criterion: "sedentary_ratio"
+        operator: ">"
+        value: 0.85  # Changed from 0.8 to 0.85 - extremely sedentary only
+        explanation: "High sedentary behavior (> 85% of days)"
+    logic: "ANY"  # ANY condition triggers high risk label
+
+  medium_risk:
+    description: "Patterns with some cardiovascular wellness concerns"
+    conditions:
+      - criterion: "resting_hr_estimate"
+        operator: "between"
+        value: [85, 100]  # Widened from [85, 95] to catch more people
+        explanation: "Moderately elevated resting heart rate (85-100 bpm)"
+      - criterion: "sleep_hours_avg"
+        operator: "between"
+        value: [5.0, 6.5]  # Widened lower bound from 5.5 to 5.0
+        explanation: "Suboptimal sleep duration (5.0-6.5 hours)"
+      - criterion: "activity_score_percentile"
+        operator: "between"
+        value: [10, 40]  # Widened from [15, 35] to catch more people
+        explanation: "Below-average activity score (10th-40th percentile)"
+      - criterion: "sedentary_ratio"
+        operator: "between"
+        value: [0.6, 0.85]  # Added new condition to catch moderate sedentary
+        explanation: "Moderate sedentary behavior (60-85% of days)"
+    logic: "ANY"  # ANY condition triggers medium risk (if not already high)
+
+  low_risk:
+    description: "Cardiovascular wellness indicators within expected ranges"
+    default: true
+
+  # Fraction of labels randomly reassigned to simulate real-world uncertainty.
+  # Keeps accuracy in the 85-92% range (realistic for wearable-based risk models).
+  noise_rate: 0.10
+
+# Feature Importance Explanations
+# Human-readable explanations for each feature used in ML model
+feature_explanations:
+  resting_hr_estimate:
+    name: "Resting Heart Rate"
+    unit: "bpm"
+    healthy_range: [60, 85]  # Widened from [60, 80]
+    description: "Estimated resting heart rate during low-activity periods"
+    interpretation:
+      high: "Elevated resting heart rate may indicate need for wellness consultation"
+      low: "Lower resting heart rate often indicates better cardiovascular fitness"
+
+  activity_score:
+    name: "Physical Activity Score"
+    unit: "points"
+    healthy_range: [40, 100]  # Lowered from [50, 100]
+    description: "Composite score from steps, active minutes, and distance"
+    interpretation:
+      high: "High activity levels support cardiovascular wellness"
+      low: "Increasing daily physical activity may improve wellness indicators"
+
+  sleep_hours_avg:
+    name: "Average Sleep Duration"
+    unit: "hours"
+    healthy_range: [6.5, 9]  # Lowered from [7, 9] to be more realistic
+    description: "7-day rolling average of nightly sleep hours"
+    interpretation:
+      high: "Adequate sleep supports overall wellness"
+      low: "Insufficient sleep may impact cardiovascular wellness"
+
+  sedentary_ratio:
+    name: "Sedentary Behavior Ratio"
+    unit: "proportion"
+    healthy_range: [0, 0.4]  # Increased from [0, 0.3] to be more realistic
+    description: "Proportion of days with < 5000 steps (last 30 days)"
+    interpretation:
+      high: "High sedentary time is associated with wellness concerns"
+      low: "Lower sedentary time supports cardiovascular wellness"
+
+  workout_consistency:
+    name: "Workout Consistency"
+    unit: "proportion"
+    healthy_range: [0.4, 1.0]  # Lowered from [0.5, 1.0] to be more realistic
+    description: "Proportion of days with structured workouts (last 30 days)"
+    interpretation:
+      high: "Regular structured exercise supports cardiovascular fitness"
+      low: "More consistent exercise routine may improve wellness"
+
+  hr_variability_proxy:
+    name: "Heart Rate Variability Proxy"
+    unit: "bpm (std dev)"
+    healthy_range: [4, 18]  # Widened from [5, 15]
+    description: "Standard deviation of heart rate over 7-day window"
+    interpretation:
+      high: "Higher heart rate variability may indicate wellness concerns or varied activity"
+      low: "Stable heart rate patterns"
+
+  mood_stress_ratio:
+    name: "Stress Indicator"
+    unit: "proportion"
+    healthy_range: [0, 0.35]  # Increased from [0, 0.3]
+    description: "Proportion of 'Stressed' mood entries (last 14 days)"
+    interpretation:
+      high: "Elevated stress levels may impact cardiovascular wellness"
+      low: "Lower stress levels support overall wellness"
+
+# SHAP Explanation Templates
+# Templates for generating human-readable SHAP explanations
+shap_templates:
+  positive_impact:
+    template: "{feature_name} ({value} {unit}) - INCREASES risk by {shap_value:.2f}"
+    context: "Above healthy range: {healthy_range}"
+
+  negative_impact:
+    template: "{feature_name} ({value} {unit}) - DECREASES risk by {shap_value:.2f}"
+    context: "Within healthy range: {healthy_range}"
+
+  neutral:
+    template: "{feature_name} ({value} {unit}) - Minimal impact ({shap_value:.2f})"
+    context: "Near healthy range: {healthy_range}"
