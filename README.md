@@ -257,6 +257,10 @@ Every page displays:
 - No real patient data (synthetic user IDs)
 - No emergency alerts (educational only)
 
+### AI Assistance Disclaimer
+
+During development, AI tools were occasionally used for guidance, such as exploring approaches or resolving minor issues. All key decisions and the final code were written and reviewed by the developers.
+
 ## Configuration
 
 ### Environment Variables
