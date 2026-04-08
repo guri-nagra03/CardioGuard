@@ -87,8 +87,12 @@ def main():
 
     # Configuration
     print("Configuration:")
+<<<<<<< HEAD
     print(f"  Sampling: Smart (500 users x 30 days)")  # ← ADD THIS INSTEAD
     print(f"  Clean before sampling: {settings.CLEAN_BEFORE_SAMPLING}")
+=======
+    print(f"  Data limit: {args.limit} rows")
+>>>>>>> 0fadd6eefaaaf69720688849a8adfa847f925c39
     print(f"  FHIR operations: {'Disabled' if args.no_fhir else 'Enabled'}")
     print(f"  Skip training: {'Yes' if args.skip_training else 'No'}")
     print()

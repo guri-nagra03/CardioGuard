@@ -81,6 +81,10 @@ FEATURE_NAMES = [
     "activity_score_percentile",
     # Rolling aggregates referenced by risk rules
     "steps_avg_30d",
+<<<<<<< HEAD
+=======
+    "sleep_hours_avg",
+>>>>>>> 0fadd6eefaaaf69720688849a8adfa847f925c39
     "sleep_hours_avg_7d",
     "sedentary_ratio",
     "workout_consistency",

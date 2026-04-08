@@ -49,6 +49,10 @@ class Settings:
     CACHE_DB_PATH = SQLITE_DB_PATH
 
     # Data Configuration
+<<<<<<< HEAD
+=======
+    DATA_LIMIT = int(os.getenv("DATA_LIMIT", 10000))
+>>>>>>> 0fadd6eefaaaf69720688849a8adfa847f925c39
     RANDOM_SEED = int(os.getenv("RANDOM_SEED", 42))
     
     # Data Cleaning Configuration
