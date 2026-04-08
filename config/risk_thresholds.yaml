@@ -84,11 +84,7 @@ synthetic_labels:
         operator: ">"
         value: 100  # Changed from 95 to 100 - only true tachycardia
         explanation: "Elevated resting heart rate (> 100 bpm)"
-<<<<<<< HEAD
       - criterion: "sleep_hours_avg_7d"
-=======
-      - criterion: "sleep_hours_avg"
->>>>>>> 0fadd6eefaaaf69720688849a8adfa847f925c39
         operator: "<"
         value: 5.0  # Changed from 5.5 to 5.0 - severe deprivation only
         explanation: "Insufficient sleep (< 5.0 hours avg)"
@@ -109,11 +105,7 @@ synthetic_labels:
         operator: "between"
         value: [85, 100]  # Widened from [85, 95] to catch more people
         explanation: "Moderately elevated resting heart rate (85-100 bpm)"
-<<<<<<< HEAD
       - criterion: "sleep_hours_avg_7d"
-=======
-      - criterion: "sleep_hours_avg"
->>>>>>> 0fadd6eefaaaf69720688849a8adfa847f925c39
         operator: "between"
         value: [5.0, 6.5]  # Widened lower bound from 5.5 to 5.0
         explanation: "Suboptimal sleep duration (5.0-6.5 hours)"
@@ -156,11 +148,7 @@ feature_explanations:
       high: "High activity levels support cardiovascular wellness"
       low: "Increasing daily physical activity may improve wellness indicators"
 
-<<<<<<< HEAD
   sleep_hours_avg_7d:
-=======
-  sleep_hours_avg:
->>>>>>> 0fadd6eefaaaf69720688849a8adfa847f925c39
     name: "Average Sleep Duration"
     unit: "hours"
     healthy_range: [6.5, 9]  # Lowered from [7, 9] to be more realistic

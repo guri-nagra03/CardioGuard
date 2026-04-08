@@ -114,11 +114,7 @@ def create_cardiovascular_features(
 
     # Remove rows with insufficient data
     initial_rows = len(df_features)
-<<<<<<< HEAD
     df_features = df_features.dropna(subset=['activity_score', 'sleep_hours_avg_7d'])
-=======
-    df_features = df_features.dropna(subset=['activity_score', 'sleep_hours_avg'])
->>>>>>> 0fadd6eefaaaf69720688849a8adfa847f925c39
     removed_rows = initial_rows - len(df_features)
 
     if removed_rows > 0:
@@ -166,20 +162,10 @@ def _compute_user_features(user_df: pd.DataFrame, min_days: int) -> pd.DataFrame
     )
 
     # 3. Sleep Hours (7-day rolling average)
-<<<<<<< HEAD
     user_df['sleep_hours_avg_7d'] = user_df['sleep_hours'].rolling(
         window=settings.ROLLING_WINDOW_SHORT,
         min_periods=1
     ).mean()
-=======
-    # Keep the original name (sleep_hours_avg) but also provide the explicit
-    # 7-day name (sleep_hours_avg_7d) expected by the rule engine.
-    user_df['sleep_hours_avg'] = user_df['sleep_hours'].rolling(
-        window=settings.ROLLING_WINDOW_SHORT,
-        min_periods=1
-    ).mean()
-    user_df['sleep_hours_avg_7d'] = user_df['sleep_hours_avg']
->>>>>>> 0fadd6eefaaaf69720688849a8adfa847f925c39
 
     # 3b. Steps (30-day rolling average)
     # The rule engine expects steps_avg_30d; compute it as a rolling mean.
@@ -283,17 +269,10 @@ def _estimate_resting_hr(hr_series: pd.Series, steps_series: pd.Series) -> pd.Se
         low_activity_hr = hr_series.where(low_activity_mask)
 
         # Forward fill resting HR estimate (carry forward last known resting HR)
-<<<<<<< HEAD
         resting_hr = low_activity_hr.ffill()
 
         # Backward fill for initial missing values
         resting_hr = resting_hr.bfill() 
-=======
-        resting_hr = low_activity_hr.fillna(method='ffill')
-
-        # Backward fill for initial missing values
-        resting_hr = resting_hr.fillna(method='bfill')
->>>>>>> 0fadd6eefaaaf69720688849a8adfa847f925c39
 
         # If still missing, use overall median
         resting_hr = resting_hr.fillna(hr_series.median())
